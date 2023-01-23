@@ -1,3 +1,9 @@
+import time
+import logging
+import atexit
+import math
+from logdecorator import log_on_start, log_on_end, log_on_error
+
 try:
     from robot_hat import Pin, PWM, Servo, fileDB
     from robot_hat import Grayscale_Module, Ultrasonic
@@ -19,7 +25,11 @@ except ImportError:
 import time
 import os
 
-
+# Logging configuration
+logging_format = "%(asctime)s: %(message)s "
+logging.basicConfig(format=logging_format, level=logging.INFO,
+                    datefmt="%H:%M:%S")
+logging.getLogger().setLevel(logging.DEBUG)
 
 
 class Picarx(object):
@@ -39,7 +49,8 @@ class Picarx(object):
                 ultrasonic_pins:list=['D2','D3'],
                 config:str=config_file,
                 ):
-
+        # Add the cleanup function to the register to stop motors on exit
+        atexit.register(self.cleanup)
         # config_flie
         self.config_flie = fileDB(config, 774, User)
         # servos init 
@@ -204,9 +215,22 @@ class Picarx(object):
     def get_line_status(self,gm_val_list):
         return str(self.grayscale.get_line_status(gm_val_list))
 
+    @log_on_start(logging.DEBUG, "Cleanup: Message when function starts")
+    @log_on_error(logging.DEBUG, "Message when function encounters an error "
+                  "before completing")
+    @log_on_end(logging.DEBUG, "Cleanup: Message when function ends successfully")    
+    def cleanup(self):
+        """
+        Function to stop the motors, future iterations will include reseting
+        servo angles
+        """
+        self.set_motor_speed(1, 0)
+        self.set_motor_speed(2, 0)
+
 
 if __name__ == "__main__":
     px = Picarx()
-    px.forward(50)
-    time.sleep(1)
+    px.set_dir_servo_angle(-40)
+    px.forward(100)
+    time.sleep(5)
     px.stop()
