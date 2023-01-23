@@ -87,16 +87,18 @@ class Picarx(object):
         self.ultrasonic = Ultrasonic(Pin(tring), Pin(echo))
         
 
-    def set_motor_speed(self,motor,speed):
-        # global cali_speed_value,cali_dir_value
+    def set_motor_speed(self, motor, speed):
+        """
+        Function to set motor speed as a PWM percentage
+        :param motor: Motor number, either 1 or 2
+        :param speed: Motor speed, from 0 to 100
+        """
         motor -= 1
         if speed >= 0:
             direction = 1 * self.cali_dir_value[motor]
         elif speed < 0:
             direction = -1 * self.cali_dir_value[motor]
         speed = abs(speed)
-        if speed != 0:
-            speed = int(speed /2 ) + 50
         speed = speed - self.cali_speed_value[motor]
         if direction < 0:
             self.motor_direction_pins[motor].high()
@@ -159,45 +161,75 @@ class Picarx(object):
         self.set_motor_speed(1, speed)
         self.set_motor_speed(2, speed) 
 
-    def backward(self,speed):
+    def backward(self, speed):
+        """
+        Function to move the PicarX backwards
+        :param speed: Motor speed, from 0 to 100
+        """
         current_angle = self.dir_current_angle
+        # Scale the wheel powers when the PicarX is turning
         if current_angle != 0:
             abs_current_angle = abs(current_angle)
-            # if abs_current_angle >= 0:
             if abs_current_angle > 40:
                 abs_current_angle = 40
-            power_scale = (100 - abs_current_angle) / 100.0 
-            # print("power_scale:",power_scale)
+            # Calculate the power scale
+            power_scale = self.power_scale_calc(speed)
+            print("power_scale:", power_scale)
+            # Depending on the direction of turn, properly scale the speeds
             if (current_angle / abs_current_angle) > 0:
                 self.set_motor_speed(1, -1*speed)
                 self.set_motor_speed(2, speed * power_scale)
             else:
                 self.set_motor_speed(1, -1*speed * power_scale)
-                self.set_motor_speed(2, speed )
+                self.set_motor_speed(2, speed)
+        # If the PicarX is not turning, wheels should be at the same speed
         else:
             self.set_motor_speed(1, -1*speed)
-            self.set_motor_speed(2, speed)  
+            self.set_motor_speed(2, speed)
 
-    def forward(self,speed):
+    def forward(self, speed):
+        """
+        Function to move the PicarX forwards
+        :param speed: Motor speed, from 0 to 100
+        """
         current_angle = self.dir_current_angle
+        # Scale the wheel powers when the PicarX is turning
         if current_angle != 0:
             abs_current_angle = abs(current_angle)
-            # if abs_current_angle >= 0:
+            # Max angle should be 40 degrees
             if abs_current_angle > 40:
                 abs_current_angle = 40
-            power_scale = (100 - abs_current_angle) / 100.0
-            # print("power_scale:",power_scale)
+            # Calculate the power scale
+            power_scale = self.power_scale_calc(speed)
+            print("power_scale:", power_scale)
+            # Depending on the direction of turn, properly scale the speeds
             if (current_angle / abs_current_angle) > 0:
-                self.set_motor_speed(1, 1*speed * power_scale)
-                self.set_motor_speed(2, -speed) 
-                # print("current_speed: %s %s"%(1*speed * power_scale, -speed))
-            else:
                 self.set_motor_speed(1, speed)
                 self.set_motor_speed(2, -1*speed * power_scale)
-                # print("current_speed: %s %s"%(speed, -1*speed * power_scale))
+            else:
+                self.set_motor_speed(1, speed * power_scale)
+                self.set_motor_speed(2, -1*speed)
+        # If the PicarX is not turning, wheels should be at the same speed
         else:
             self.set_motor_speed(1, speed)
-            self.set_motor_speed(2, -1*speed)                  
+            self.set_motor_speed(2, -1*speed)
+
+    def power_scale_calc(self, speed):
+        """
+        Calculate the power scale based on the Ackerman steering equation
+        :param speed: Current motor speed, from 0 to 100
+        """
+        current_angle = self.dir_current_angle
+        abs_current_angle = abs(current_angle)*math.pi/180
+        if abs_current_angle > 40:
+            abs_current_angle = 40
+        # Dimensions calculated on the actual PicarX in meters
+        wheelbase = 0.95
+        wheelwidth = 1.12
+        # Ackerman steering equation
+        power_scale = (wheelbase-(wheelwidth/2*math.tan(abs_current_angle))) / \
+            (wheelbase+(wheelwidth/2*math.tan(abs_current_angle)))
+        return power_scale               
 
     def stop(self):
         self.set_motor_speed(1, 0)
@@ -232,5 +264,5 @@ if __name__ == "__main__":
     px = Picarx()
     px.set_dir_servo_angle(-40)
     px.forward(100)
-    time.sleep(5)
+    time.sleep(3)
     px.stop()
