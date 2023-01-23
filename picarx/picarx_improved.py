@@ -176,11 +176,11 @@ class Picarx(object):
             print("power_scale:", power_scale)
             # Depending on the direction of turn, properly scale the speeds
             if (current_angle / abs_current_angle) > 0:
-                self.set_motor_speed(1, -1*speed)
-                self.set_motor_speed(2, speed * power_scale)
-            else:
                 self.set_motor_speed(1, -1*speed * power_scale)
                 self.set_motor_speed(2, speed)
+            else:
+                self.set_motor_speed(1, -1*speed)
+                self.set_motor_speed(2, speed * power_scale)
         # If the PicarX is not turning, wheels should be at the same speed
         else:
             self.set_motor_speed(1, -1*speed)
@@ -203,11 +203,11 @@ class Picarx(object):
             print("power_scale:", power_scale)
             # Depending on the direction of turn, properly scale the speeds
             if (current_angle / abs_current_angle) > 0:
-                self.set_motor_speed(1, speed)
-                self.set_motor_speed(2, -1*speed * power_scale)
-            else:
                 self.set_motor_speed(1, speed * power_scale)
                 self.set_motor_speed(2, -1*speed)
+            else:
+                self.set_motor_speed(1, speed)
+                self.set_motor_speed(2, -1*speed * power_scale)
         # If the PicarX is not turning, wheels should be at the same speed
         else:
             self.set_motor_speed(1, speed)
@@ -261,7 +261,7 @@ class Picarx(object):
 
 if __name__ == "__main__":
     px = Picarx()
-    px.set_dir_servo_angle(-40)
-    px.forward(100)
+    px.set_dir_servo_angle(-30)
+    px.backward(100)
     time.sleep(3)
     px.stop()
