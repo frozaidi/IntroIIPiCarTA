@@ -69,6 +69,7 @@ if __name__ == '__main__':
 
     while True:
         list = sens.get_grayscale_data()
+        print(list)
         rel_dir = inter.edge_detect(list)
         print("{:.3f}".format(rel_dir))
         time.sleep(1)

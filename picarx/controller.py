@@ -18,7 +18,7 @@ class Controller(object):
         :param rel_dir: The relative direction of the line, [-1,1], where
         positive values indicate the line left of the robot
         """
-        self.steer_angle = -1*rel_dir*self.scale
+        self.steer_angle = rel_dir*self.scale
         self.px.set_dir_servo_angle(self.steer_angle)
         # Return the steer angle as feedback
         return self.steer_angle
@@ -40,13 +40,13 @@ class Controller(object):
 
 if __name__ == '__main__':
     px = Picarx()
-    con = Controller(2)
+    con = Controller(px, 2)
     sens = GrayscaleSensor()
     inter = Interpreter(0.0, -1)
 
     while True:
         list = sens.get_grayscale_data()
         rel_dir = inter.edge_detect(list)
-        angle = con.line_follow(px, rel_dir)
+        angle = con.line_follow(rel_dir)
         print("Steering angle: "+str(angle))
         time.sleep(0.5)
