@@ -2,6 +2,7 @@ import time
 import logging
 import atexit
 import math
+import os
 from logdecorator import log_on_start, log_on_end, log_on_error
 
 try:
@@ -22,8 +23,6 @@ except ImportError:
     from sim_robot_hat import *
     User = 'frozaidi'
     config_file = '/home/frozaidi/.config'
-import time
-import os
 
 # Logging configuration
 logging_format = "%(asctime)s: %(message)s "

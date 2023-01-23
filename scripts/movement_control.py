@@ -1,6 +1,6 @@
 import time
 import sys
-sys.path.append(r'/home/frozaidi/IntroIIPiCarTA/picar-x')
+sys.path.append(r'/home/frozaidi/IntroIIPiCarTA/picarx')
 from picarx_improved import Picarx      # noqa: E402
 
 
